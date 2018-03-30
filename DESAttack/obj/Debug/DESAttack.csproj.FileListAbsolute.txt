@@ -1,0 +1,9 @@
+C:\Users\Азат\Desktop\DESAttack\DESAttack\bin\Debug\DESAttack.exe.config
+C:\Users\Азат\Desktop\DESAttack\DESAttack\bin\Debug\DESAttack.exe
+C:\Users\Азат\Desktop\DESAttack\DESAttack\bin\Debug\DESAttack.pdb
+C:\Users\Азат\Desktop\DESAttack\DESAttack\obj\Debug\DESAttack.csprojResolveAssemblyReference.cache
+C:\Users\Азат\Desktop\DESAttack\DESAttack\obj\Debug\DESAttack.MainForm.resources
+C:\Users\Азат\Desktop\DESAttack\DESAttack\obj\Debug\DESAttack.Properties.Resources.resources
+C:\Users\Азат\Desktop\DESAttack\DESAttack\obj\Debug\DESAttack.csproj.GenerateResource.Cache
+C:\Users\Азат\Desktop\DESAttack\DESAttack\obj\Debug\DESAttack.exe
+C:\Users\Азат\Desktop\DESAttack\DESAttack\obj\Debug\DESAttack.pdb

@@ -1,0 +1,74 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Diagnostics;
+using System.Collections;
+
+namespace DESAttack
+{
+    public partial class MainForm : Form
+    {
+        Encryptor worker;
+
+        public MainForm()
+        {
+            InitializeComponent();
+            worker = new Encryptor();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            var result = worker.EncodeString(codeTextBox.Text);
+            encryptedTextBox.Text = result;
+
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            var result = worker.DecodeString(encryptedTextBox.Text);
+            decodeTextBox.Text = result;
+        }
+
+        private void prepButton_Click(object sender, EventArgs e)
+        {
+            var timer = new Stopwatch();
+            timer.Start();
+            //worker.PrepairData();
+            timer.Stop();
+            timerTextBox.Text = timer.Elapsed.ToString();
+            keyTextBox.Text = DESKey.LastKey.ToString();
+            for (int j = 0; j < 8; j++)
+            {
+                var temp = new BitArray(DESEncrypter.Keys[j]);
+                var buffer = new StringBuilder();
+                for (int i = 0; i < temp.Length; i++)
+                {
+                    if (temp[i])
+                    {
+                        buffer.Append('1');
+                    }
+                    else
+                    {
+                        buffer.Append('0');
+                    }
+                }
+                raundKeysTextBox.Text += buffer + Environment.NewLine;
+            }
+        }
+
+        private void attackButton_Click(object sender, EventArgs e)
+        {
+            var timer = new Stopwatch();
+            timer.Start();
+            LinearCryptanalysis.Attack();
+            timer.Stop();
+            timerTextBox.Text = timer.Elapsed.ToString();
+        }
+    }
+}
