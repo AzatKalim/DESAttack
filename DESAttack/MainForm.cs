@@ -39,7 +39,7 @@ namespace DESAttack
         {
             var timer = new Stopwatch();
             timer.Start();
-            //worker.PrepairData();
+            worker.PrepairData();
             timer.Stop();
             timerTextBox.Text = timer.Elapsed.ToString();
             keyTextBox.Text = DESKey.LastKey.ToString();
@@ -69,6 +69,8 @@ namespace DESAttack
             LinearCryptanalysis.Attack();
             timer.Stop();
             timerTextBox.Text = timer.Elapsed.ToString();
+            equalsCountTextBox.Text = LinearCryptanalysis.EqualsCount.ToString();
+            keyBitsTextBox.Text = LinearCryptanalysis.KeyBitsString;
         }
     }
 }

@@ -72,17 +72,17 @@ namespace DESAttack
 
         public void PrepairData()
         {
-            //var textFile= new BinaryWriter(new FileStream("text.txt", FileMode.Create));
-            //var codefile = new BinaryWriter(new FileStream("code.txt", FileMode.Create));
+            var textFile= new BinaryWriter(new FileStream("text.txt", FileMode.Create));
+            var codefile = new BinaryWriter(new FileStream("code.txt", FileMode.Create));
             for (ulong i = 0; i < TEXT_COUNT; i++)
             {
                 var tmp = BitConverter.GetBytes(i);
-                //textFile.Write(tmp);
+                textFile.Write(tmp);
                 var result = Encode(tmp);
-                //codefile.Write(result);
+                codefile.Write(result);
             }
-            //textFile.Close();
-            //codefile.Close();
+            textFile.Close();
+            codefile.Close();
         }
 
 	}

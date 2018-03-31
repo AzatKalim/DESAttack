@@ -14,6 +14,28 @@ namespace DESAttack
         const int TEXT_COUNT = 2097152;
         static BinaryReader textFile = new BinaryReader(new FileStream("text.txt",FileMode.Open));
         static BinaryReader codeFile = new BinaryReader(new FileStream("code.txt", FileMode.Open));
+        public static BitArray KeyBits;
+        public static int EqualsCount;
+
+        public static string KeyBitsString
+        {
+            get
+            {
+                var buffer = new StringBuilder();
+                foreach (bool item in KeyBits)
+                {
+                    if (item)
+                    {
+                        buffer.Append('1');
+                    }
+                    else
+                    {
+                        buffer.Append('0');
+                    }
+                }
+                return buffer.ToString();
+            }
+        }
 
         public static void Attack()
         {
@@ -41,12 +63,15 @@ namespace DESAttack
             {
                 Console.WriteLine("{0} кандидат max: {1} ",t[indexes.Item2],indexes.Item2);
                 Console.WriteLine("{0} кандидат min: {1} ", t[indexes.Item1], indexes.Item1);
-
+                KeyBits = new BitArray(BitConverter.GetBytes(indexes.Item2));
+                EqualsCount = t[indexes.Item2];
             }
             else
             {
                 Console.WriteLine("{0} кандидат min: {1} ", t[indexes.Item1], indexes.Item1);
                 Console.WriteLine("{0} кандидат max: {1} ", t[indexes.Item2], indexes.Item2);
+                KeyBits = new BitArray(BitConverter.GetBytes(indexes.Item1));
+                EqualsCount = t[indexes.Item1];
             }
         }
 
