@@ -46,16 +46,15 @@ namespace DESAttack
                 var p = new BitArray(tmp.Item1);
                 var c = new BitArray(tmp.Item2);
                 var cRight = c.GetRightPart();
-
+                var key = new BitArray(48);
                 for (ulong i = 0; i < COUNT; i++)
-                {
-                    var key = BitConverter.GetBytes(i);
-                    var keyBytes = new byte[] { key[2], key[3], key[4], key[5], key[6], key[7] };
-                    var f = new BitArray(DES.f(cRight, new BitArray(keyBytes)));
+                {                  
+                    var f = DES.f(cRight, key);
                     if (p[7] ^ p[18] ^ p[24] ^ p[43] ^ p[47] ^ c[15] ^ c[38] ^ c[49] ^ c[55] ^ c[60] ^ f[15])
                     {
                         t[i]++;
                     }
+                    BitArrayOperations.AddOne(ref key);
                 }
             }
             

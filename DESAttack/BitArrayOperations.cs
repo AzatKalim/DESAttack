@@ -152,5 +152,24 @@ namespace DESAttack
             }
             return result;
         }
+
+        public static void AddOne(ref BitArray array)
+        {
+            bool mind=true;
+            for (int i = array.Length-1; i!=0; i--)
+            {
+                if (array[i] && mind)
+                {
+                    array[i] = false;
+                    mind = true;
+                }
+                else
+                {
+                    if (mind)
+                        array[i] = true;
+                    break;
+                }
+            }
+        }
     }
 }
