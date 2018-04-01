@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Text;
 using System.Collections.Generic;
+using System.Collections;
 using System;
 
 namespace DESAttack
@@ -9,45 +10,39 @@ namespace DESAttack
 	{
         public const ulong TEXT_COUNT = 2097152;
         public const int BYTES_COUNT = 8;
-		private DESKey key;
-		private DESEncrypter encrypter;
-		private DESDecrypter decrypter;
         Encoding encoding = Encoding.Default;
-
+        BitArray key;
+        DES des = new DES();
 		public Encryptor()
 		{
-            using (var keyfile = new BinaryWriter(new FileStream("key.txt", FileMode.Create)))
+            using (var keyfile = new StreamWriter("key.txt"))
             {
-                key = DESKey.RandomKey();
-                keyfile.Write(key.GetEncoded());
+                key = des.GenerateKeys();
+                keyfile.Write(key.ToView());
             }
-			encrypter = new DESEncrypter();
-			decrypter = new DESDecrypter();
 		}
 
         public string EncodeString(string text)
         {
-            text = DES.GetMessageRightLength(text);
-            var bytes = Encoding.Default.GetBytes(text);
-            return Encoding.Default.GetString(Encode(bytes));
+            return des.Encrypt(new StringBuilder(text)).ToString();
         }
 
         public string DecodeString(string text)
         {
 
-            var bytes = Encoding.Default.GetBytes(text);
-            return Encoding.Default.GetString(Decode(bytes));
+            return des.Decrypt(new StringBuilder(text)).ToString();
         }
 
 		public byte[] Encode(byte[] msg)
 		{
-			return encrypter.Encrypt(msg, key);
+			return des.Encrypt(msg);
 		}
 
-		public byte[] Decode(byte[] msg)
-		{
-			return decrypter.Decrypt(msg, key);
-		}
+
+        //public byte[] Decode(byte[] msg)
+        //{
+        //    return des.Decrypt(msg);
+        //}
 
 		public void FileEncode(string path)
 		{
@@ -56,19 +51,19 @@ namespace DESAttack
 			File.WriteAllBytes("encodeFile.txt", encoded);
 		}
 
-		public void FileDecode(string path)
-		{
-			var bytes = File.ReadAllBytes(path);
-			var decoded = Decode(bytes);
-			var outputName ="decripted.txt";
-			int tryed = 1;
-			while (File.Exists(outputName))
-			{
-                outputName ="_" + tryed + outputName;
-				tryed++;
-			}
-			File.WriteAllBytes(outputName, decoded);
-		}
+        //public void FileDecode(string path)
+        //{
+        //    var bytes = File.ReadAllBytes(path);
+        //    var decoded = Decode(bytes);
+        //    var outputName ="decripted.txt";
+        //    int tryed = 1;
+        //    while (File.Exists(outputName))
+        //    {
+        //        outputName ="_" + tryed + outputName;
+        //        tryed++;
+        //    }
+        //    File.WriteAllBytes(outputName, decoded);
+        //}
 
         public void PrepairData()
         {

@@ -1,293 +1,373 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using System.IO;
+using System.Collections;
+
 
 namespace DESAttack
 {
-	public static class DES
-	{
-		public const int ENCRYPT = 1;
-		public const int DECRYPT = 0;
-        const int ROUND_COUNT = 8;
+    class DES
+    {
+        #region constants
+
         public const int BLOCK_SIZE = 64;
-        public const int CHAR_SIZE= 8;
+        public const int SYMBOL_SIZE = 16;
+        public const int ROUNDS_COUNT = 8;
+        public const int KEY_LENGTH = 56;
+        public const ulong TEXT_COUNT = 2097152;
+        public const int BYTES_COUNT = 8;
 
-		private static uint BITNUM(byte[] a, int b, int c)
-		{
-			return (uint)(((a[b / 8] >> (7 - (b % 8))) & 0x01) << (c));
-		}
+        #endregion
 
-		private static byte BITNUMINTR(uint a, int b, int c)
-		{
-			return (byte)((((a) >> (31 - (b))) & 0x00000001) << (c));
-		}
+        private BitArray key;
 
-		private static uint BITNUMINTL(uint a, int b, int c)
-		{
-			return ((((a) << (b)) & 0x80000000) >> (c));
-		}
-
-		private static uint SBOXBIT(byte a)
-		{
-			return (uint)(((a) & 0x20) | (((a) & 0x1f) >> 1) | (((a) & 0x01) << 4));
-		}
-
-		private static byte[] sbox1 = {
-	14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7,
-	0, 15, 7, 4, 14, 2, 13, 1, 10, 6, 12, 11, 9, 5, 3, 8,
-	4, 1, 14, 8, 13, 6, 2, 11, 15, 12, 9, 7, 3, 10, 5, 0,
-	15, 12, 8, 2, 4, 9, 1, 7, 5, 11, 3, 14, 10, 0, 6, 13
-};
-
-		private static byte[] sbox2 = {
-	15, 1, 8, 14, 6, 11, 3, 4, 9, 7, 2, 13, 12, 0, 5, 10,
-	3, 13, 4, 7, 15, 2, 8, 14, 12, 0, 1, 10, 6, 9, 11, 5,
-	0, 14, 7, 11, 10, 4, 13, 1, 5, 8, 12, 6, 9, 3, 2, 15,
-	13, 8, 10, 1, 3, 15, 4, 2, 11, 6, 7, 12, 0, 5, 14, 9
-};
-
-		private static byte[] sbox3 = {
-	10, 0, 9, 14, 6, 3, 15, 5, 1, 13, 12, 7, 11, 4, 2, 8,
-	13, 7, 0, 9, 3, 4, 6, 10, 2, 8, 5, 14, 12, 11, 15, 1,
-	13, 6, 4, 9, 8, 15, 3, 0, 11, 1, 2, 12, 5, 10, 14, 7,
-	1, 10, 13, 0, 6, 9, 8, 7, 4, 15, 14, 3, 11, 5, 2, 12
-};
-
-		private static byte[] sbox4 = {
-	7, 13, 14, 3, 0, 6, 9, 10, 1, 2, 8, 5, 11, 12, 4, 15,
-	13, 8, 11, 5, 6, 15, 0, 3, 4, 7, 2, 12, 1, 10, 14, 9,
-	10, 6, 9, 0, 12, 11, 7, 13, 15, 1, 3, 14, 5, 2, 8, 4,
-	3, 15, 0, 6, 10, 1, 13, 8, 9, 4, 5, 11, 12, 7, 2, 14
-};
-
-		private static byte[] sbox5 = {
-	2, 12, 4, 1, 7, 10, 11, 6, 8, 5, 3, 15, 13, 0, 14, 9,
-	14, 11, 2, 12, 4, 7, 13, 1, 5, 0, 15, 10, 3, 9, 8, 6,
-	4, 2, 1, 11, 10, 13, 7, 8, 15, 9, 12, 5, 6, 3, 0, 14,
-	11, 8, 12, 7, 1, 14, 2, 13, 6, 15, 0, 9, 10, 4, 5, 3
-};
-
-		private static byte[] sbox6 = {
-	12, 1, 10, 15, 9, 2, 6, 8, 0, 13, 3, 4, 14, 7, 5, 11,
-	10, 15, 4, 2, 7, 12, 9, 5, 6, 1, 13, 14, 0, 11, 3, 8,
-	9, 14, 15, 5, 2, 8, 12, 3, 7, 0, 4, 10, 1, 13, 11, 6,
-	4, 3, 2, 12, 9, 5, 15, 10, 11, 14, 1, 7, 6, 0, 8, 13
-};
-
-		private static byte[] sbox7 = {
-	4, 11, 2, 14, 15, 0, 8, 13, 3, 12, 9, 7, 5, 10, 6, 1,
-	13, 0, 11, 7, 4, 9, 1, 10, 14, 3, 5, 12, 2, 15, 8, 6,
-	1, 4, 11, 13, 12, 3, 7, 14, 10, 15, 6, 8, 0, 5, 9, 2,
-	6, 11, 13, 8, 1, 4, 10, 7, 9, 5, 0, 15, 14, 2, 3, 12
-};
-
-		private static byte[] sbox8 = {
-	13, 2, 8, 4, 6, 15, 11, 1, 10, 9, 3, 14, 5, 0, 12, 7,
-	1, 15, 13, 8, 10, 3, 7, 4, 12, 5, 6, 11, 0, 14, 9, 2,
-	7, 11, 4, 1, 9, 12, 14, 2, 0, 6, 10, 13, 15, 3, 5, 8,
-	2, 1, 14, 7, 4, 10, 8, 13, 15, 12, 9, 0, 3, 5, 6, 11
-};
-
-		public static void KeySchedule(byte[] key, byte[,] schedule, uint mode)
-		{
-			uint i, j, toGen, C, D;
-			uint[] key_rnd_shift = { 1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1 };
-			uint[] key_perm_c = { 56, 48, 40, 32, 24, 16, 8, 0, 57, 49, 41, 33, 25, 17,
-		9,1,58,50,42,34,26,18,10,2,59,51,43,35 };
-			uint[] key_perm_d = { 62,54,46,38,30,22,14,6,61,53,45,37,29,21,
-		13,5,60,52,44,36,28,20,12,4,27,19,11,3 };
-			uint[] key_compression = { 13,16,10,23,0,4,2,27,14,5,20,9,
-		22,18,11,3,25,7,15,6,26,19,12,1,
-		40,51,30,36,46,54,29,39,50,44,32,47,
-		43,48,38,55,33,52,45,41,49,35,28,31 };
-
-			for (i = 0, j = 31, C = 0; i < 28; ++i, --j)
-				C |= BITNUM(key, (int)key_perm_c[i], (int)j);
-
-			for (i = 0, j = 31, D = 0; i < 28; ++i, --j)
-				D |= BITNUM(key, (int)key_perm_d[i], (int)j);
-
-            for (i = 0; i < ROUND_COUNT; ++i)
-			{
-				C = ((C << (int)key_rnd_shift[i]) | (C >> (28 - (int)key_rnd_shift[i]))) & 0xfffffff0;
-				D = ((D << (int)key_rnd_shift[i]) | (D >> (28 - (int)key_rnd_shift[i]))) & 0xfffffff0;
-
-				if (mode == DECRYPT)
-					toGen = ROUND_COUNT-1 - i;
-				else
-					toGen = i;
-
-				for (j = 0; j < 6; ++j)
-					schedule[toGen, j] = 0;
-
-				for (j = 0; j < 24; ++j)
-					schedule[toGen, j / 8] |= BITNUMINTR(C, (int)key_compression[j], (int)(7 - (j % 8)));
-
-				for (; j < 48; ++j)
-					schedule[toGen, j / 8] |= BITNUMINTR(D, (int)key_compression[j] - 28, (int)(7 - (j % 8)));
-			}
-		}
-
-		private static void IP(uint[] state, byte[] input)
-		{
-			state[0] = BITNUM(input, 57, 31) | BITNUM(input, 49, 30) | BITNUM(input, 41, 29) | BITNUM(input, 33, 28) |
-				BITNUM(input, 25, 27) | BITNUM(input, 17, 26) | BITNUM(input, 9, 25) | BITNUM(input, 1, 24) |
-				BITNUM(input, 59, 23) | BITNUM(input, 51, 22) | BITNUM(input, 43, 21) | BITNUM(input, 35, 20) |
-				BITNUM(input, 27, 19) | BITNUM(input, 19, 18) | BITNUM(input, 11, 17) | BITNUM(input, 3, 16) |
-				BITNUM(input, 61, 15) | BITNUM(input, 53, 14) | BITNUM(input, 45, 13) | BITNUM(input, 37, 12) |
-				BITNUM(input, 29, 11) | BITNUM(input, 21, 10) | BITNUM(input, 13, 9) | BITNUM(input, 5, 8) |
-				BITNUM(input, 63, 7) | BITNUM(input, 55, 6) | BITNUM(input, 47, 5) | BITNUM(input, 39, 4) |
-				BITNUM(input, 31, 3) | BITNUM(input, 23, 2) | BITNUM(input, 15, 1) | BITNUM(input, 7, 0);
-
-			state[1] = BITNUM(input, 56, 31) | BITNUM(input, 48, 30) | BITNUM(input, 40, 29) | BITNUM(input, 32, 28) |
-				BITNUM(input, 24, 27) | BITNUM(input, 16, 26) | BITNUM(input, 8, 25) | BITNUM(input, 0, 24) |
-				BITNUM(input, 58, 23) | BITNUM(input, 50, 22) | BITNUM(input, 42, 21) | BITNUM(input, 34, 20) |
-				BITNUM(input, 26, 19) | BITNUM(input, 18, 18) | BITNUM(input, 10, 17) | BITNUM(input, 2, 16) |
-				BITNUM(input, 60, 15) | BITNUM(input, 52, 14) | BITNUM(input, 44, 13) | BITNUM(input, 36, 12) |
-				BITNUM(input, 28, 11) | BITNUM(input, 20, 10) | BITNUM(input, 12, 9) | BITNUM(input, 4, 8) |
-				BITNUM(input, 62, 7) | BITNUM(input, 54, 6) | BITNUM(input, 46, 5) | BITNUM(input, 38, 4) |
-				BITNUM(input, 30, 3) | BITNUM(input, 22, 2) | BITNUM(input, 14, 1) | BITNUM(input, 6, 0);
-		}
-
-		private static void InvIP(uint[] state, byte[] input)
-		{
-			input[0] = (byte)(BITNUMINTR(state[1], 7, 7) | BITNUMINTR(state[0], 7, 6) | BITNUMINTR(state[1], 15, 5) |
-				BITNUMINTR(state[0], 15, 4) | BITNUMINTR(state[1], 23, 3) | BITNUMINTR(state[0], 23, 2) |
-				BITNUMINTR(state[1], 31, 1) | BITNUMINTR(state[0], 31, 0));
-
-			input[1] = (byte)(BITNUMINTR(state[1], 6, 7) | BITNUMINTR(state[0], 6, 6) | BITNUMINTR(state[1], 14, 5) |
-				BITNUMINTR(state[0], 14, 4) | BITNUMINTR(state[1], 22, 3) | BITNUMINTR(state[0], 22, 2) |
-				BITNUMINTR(state[1], 30, 1) | BITNUMINTR(state[0], 30, 0));
-
-			input[2] = (byte)(BITNUMINTR(state[1], 5, 7) | BITNUMINTR(state[0], 5, 6) | BITNUMINTR(state[1], 13, 5) |
-				BITNUMINTR(state[0], 13, 4) | BITNUMINTR(state[1], 21, 3) | BITNUMINTR(state[0], 21, 2) |
-				BITNUMINTR(state[1], 29, 1) | BITNUMINTR(state[0], 29, 0));
-
-			input[3] = (byte)(BITNUMINTR(state[1], 4, 7) | BITNUMINTR(state[0], 4, 6) | BITNUMINTR(state[1], 12, 5) |
-				BITNUMINTR(state[0], 12, 4) | BITNUMINTR(state[1], 20, 3) | BITNUMINTR(state[0], 20, 2) |
-				BITNUMINTR(state[1], 28, 1) | BITNUMINTR(state[0], 28, 0));
-
-			input[4] = (byte)(BITNUMINTR(state[1], 3, 7) | BITNUMINTR(state[0], 3, 6) | BITNUMINTR(state[1], 11, 5) |
-				BITNUMINTR(state[0], 11, 4) | BITNUMINTR(state[1], 19, 3) | BITNUMINTR(state[0], 19, 2) |
-				BITNUMINTR(state[1], 27, 1) | BITNUMINTR(state[0], 27, 0));
-
-			input[5] = (byte)(BITNUMINTR(state[1], 2, 7) | BITNUMINTR(state[0], 2, 6) | BITNUMINTR(state[1], 10, 5) |
-				BITNUMINTR(state[0], 10, 4) | BITNUMINTR(state[1], 18, 3) | BITNUMINTR(state[0], 18, 2) |
-				BITNUMINTR(state[1], 26, 1) | BITNUMINTR(state[0], 26, 0));
-
-			input[6] = (byte)(BITNUMINTR(state[1], 1, 7) | BITNUMINTR(state[0], 1, 6) | BITNUMINTR(state[1], 9, 5) |
-				BITNUMINTR(state[0], 9, 4) | BITNUMINTR(state[1], 17, 3) | BITNUMINTR(state[0], 17, 2) |
-				BITNUMINTR(state[1], 25, 1) | BITNUMINTR(state[0], 25, 0));
-
-			input[7] = (byte)(BITNUMINTR(state[1], 0, 7) | BITNUMINTR(state[0], 0, 6) | BITNUMINTR(state[1], 8, 5) |
-				BITNUMINTR(state[0], 8, 4) | BITNUMINTR(state[1], 16, 3) | BITNUMINTR(state[0], 16, 2) |
-				BITNUMINTR(state[1], 24, 1) | BITNUMINTR(state[0], 24, 0));
-		}
-
-		public static uint F(uint state, byte[] key)
-		{
-			byte[] lrgstate = new byte[6];
-			uint t1, t2;
-
-			t1 = BITNUMINTL(state, 31, 0) | ((state & 0xf0000000) >> 1) | BITNUMINTL(state, 4, 5) |
-				BITNUMINTL(state, 3, 6) | ((state & 0x0f000000) >> 3) | BITNUMINTL(state, 8, 11) |
-				BITNUMINTL(state, 7, 12) | ((state & 0x00f00000) >> 5) | BITNUMINTL(state, 12, 17) |
-				BITNUMINTL(state, 11, 18) | ((state & 0x000f0000) >> 7) | BITNUMINTL(state, 16, 23);
-
-			t2 = BITNUMINTL(state, 15, 0) | ((state & 0x0000f000) << 15) | BITNUMINTL(state, 20, 5) |
-				BITNUMINTL(state, 19, 6) | ((state & 0x00000f00) << 13) | BITNUMINTL(state, 24, 11) |
-				BITNUMINTL(state, 23, 12) | ((state & 0x000000f0) << 11) | BITNUMINTL(state, 28, 17) |
-				BITNUMINTL(state, 27, 18) | ((state & 0x0000000f) << 9) | BITNUMINTL(state, 0, 23);
-
-			lrgstate[0] = (byte)((t1 >> 24) & 0x000000ff);
-			lrgstate[1] = (byte)((t1 >> 16) & 0x000000ff);
-			lrgstate[2] = (byte)((t1 >> 8) & 0x000000ff);
-			lrgstate[3] = (byte)((t2 >> 24) & 0x000000ff);
-			lrgstate[4] = (byte)((t2 >> 16) & 0x000000ff);
-			lrgstate[5] = (byte)((t2 >> 8) & 0x000000ff);
-
-			lrgstate[0] ^= key[0];
-			lrgstate[1] ^= key[1];
-			lrgstate[2] ^= key[2];
-			lrgstate[3] ^= key[3];
-			lrgstate[4] ^= key[4];
-			lrgstate[5] ^= key[5];
-
-			state = (uint)((sbox1[SBOXBIT((byte)(lrgstate[0] >> 2))] << 28) |
-				(sbox2[SBOXBIT((byte)(((lrgstate[0] & 0x03) << 4) | (lrgstate[1] >> 4)))] << 24) |
-				(sbox3[SBOXBIT((byte)(((lrgstate[1] & 0x0f) << 2) | (lrgstate[2] >> 6)))] << 20) |
-				(sbox4[SBOXBIT((byte)(lrgstate[2] & 0x3f))] << 16) |
-				(sbox5[SBOXBIT((byte)(lrgstate[3] >> 2))] << 12) |
-				(sbox6[SBOXBIT((byte)(((lrgstate[3] & 0x03) << 4) | (lrgstate[4] >> 4)))] << 8) |
-				(sbox7[SBOXBIT((byte)(((lrgstate[4] & 0x0f) << 2) | (lrgstate[5] >> 6)))] << 4) |
-				sbox8[SBOXBIT((byte)(lrgstate[5] & 0x3f))]);
-
-			state = BITNUMINTL(state, 15, 0) | BITNUMINTL(state, 6, 1) | BITNUMINTL(state, 19, 2) |
-				BITNUMINTL(state, 20, 3) | BITNUMINTL(state, 28, 4) | BITNUMINTL(state, 11, 5) |
-				BITNUMINTL(state, 27, 6) | BITNUMINTL(state, 16, 7) | BITNUMINTL(state, 0, 8) |
-				BITNUMINTL(state, 14, 9) | BITNUMINTL(state, 22, 10) | BITNUMINTL(state, 25, 11) |
-				BITNUMINTL(state, 4, 12) | BITNUMINTL(state, 17, 13) | BITNUMINTL(state, 30, 14) |
-				BITNUMINTL(state, 9, 15) | BITNUMINTL(state, 1, 16) | BITNUMINTL(state, 7, 17) |
-				BITNUMINTL(state, 23, 18) | BITNUMINTL(state, 13, 19) | BITNUMINTL(state, 31, 20) |
-				BITNUMINTL(state, 26, 21) | BITNUMINTL(state, 2, 22) | BITNUMINTL(state, 8, 23) |
-				BITNUMINTL(state, 18, 24) | BITNUMINTL(state, 12, 25) | BITNUMINTL(state, 29, 26) |
-				BITNUMINTL(state, 5, 27) | BITNUMINTL(state, 21, 28) | BITNUMINTL(state, 10, 29) |
-				BITNUMINTL(state, 3, 30) | BITNUMINTL(state, 24, 31);
-
-			return (state);
-		}
-
-		public static void Crypt(byte[] input, byte[] output, byte[][] key)
-		{
-			uint[] state = new uint[2];
-			uint idx, t;
-
-			IP(state, input);
-
-			for (idx = 0; idx < ROUND_COUNT-1; ++idx)
-			{
-				t = state[1];
-				state[1] = F(state[1], key[idx]) ^ state[0];
-				state[0] = t;
-			}
-
-            state[0] = F(state[1], key[ROUND_COUNT - 1]) ^ state[0];
-			InvIP(state, output);
-		}
-
-		public static T[][] ToJaggedArray<T>(T[,] twoDimensionalArray)
-		{
-			int rowsFirstIndex = twoDimensionalArray.GetLowerBound(0);
-			int rowsLastIndex = twoDimensionalArray.GetUpperBound(0);
-			int numberOfRows = rowsLastIndex + 1;
-
-			int columnsFirstIndex = twoDimensionalArray.GetLowerBound(1);
-			int columnsLastIndex = twoDimensionalArray.GetUpperBound(1);
-			int numberOfColumns = columnsLastIndex + 1;
-
-			T[][] jaggedArray = new T[numberOfRows][];
-
-			for (int i = rowsFirstIndex; i <= rowsLastIndex; i++)
-			{
-				jaggedArray[i] = new T[numberOfColumns];
-
-				for (int j = columnsFirstIndex; j <= columnsLastIndex; j++)
-				{
-					jaggedArray[i][j] = twoDimensionalArray[i, j];
-				}
-			}
-
-			return jaggedArray;
-		}
-
-        public static string GetMessageRightLength(String message)
+        public BitArray Key
         {
-            var msg = new StringBuilder(message);
-            while ((msg.Length * CHAR_SIZE) % BLOCK_SIZE != 0)
+            set
             {
-                msg.Append("#");
+                key = value;
+                LastKey = value;
             }
-            return message.ToString();
+            get
+            {
+                return key;
+            }
         }
-	}
+
+        public static BitArray LastKey;
+
+        private BitArray[] roundKeys;
+        public BitArray[] RoundKeys
+        {
+            get
+            {
+                return roundKeys;
+            }
+            set
+            {
+                roundKeys = value;
+                LastRoundKeys = value;
+            }
+        }
+
+        public static BitArray[] LastRoundKeys;
+
+        #region Tables
+
+        static int[] IP = {  
+                       58, 50, 42, 34, 26, 18, 10, 2, 60, 52, 44, 36, 28, 20, 12, 4,
+                       62, 54, 46, 38, 30, 22, 14, 6, 64, 56, 48, 40, 32, 24, 16, 8,
+                       57, 49, 41, 33, 25, 17,  9,  1, 59, 51, 43, 35, 27, 19, 11, 3,
+                       61, 53, 45, 37, 29, 21, 13, 5, 63, 55, 47, 39, 31, 23, 15, 7
+                   };
+        static int[] E = {   
+                      32,1,2,3,4,5,
+                      4,5,6,7,8,9,
+                      8,9,10,11,12,13,
+                      12,13,14,15, 16, 17,
+                      16, 17, 18, 19, 20, 21,
+                      20, 21, 22, 23, 24, 25,
+                      24, 25, 26, 27, 28, 29,
+                      28, 29, 30, 31, 32, 1
+                  };
+        static int[, ,] S = {
+            {
+                { 14,  4,   13,   1,   2,   15,  11,  8,   3,   10,  6,   12,  5,   9,   0,   7 },
+                { 0,  15,   7,   4,   14,  2,   13,  1,   10,  6,   12,  11,  9,   5,   3,   8},
+                { 4,    1,  14,  8,   13,  6,   2,   11,  15,  12,  9,   7,   3,   10,  5,   0},
+                { 15,  12,  8,   2,   4,   9,   1,   7,   5,   11,  3,   14,  10,  0,   6,   13}
+            },
+            {
+                { 15,   1,   8,   14,  6,   11,  3,   4,   9,   7,   2,   13,  12,  0,   5,   10},
+                { 3,    13,  4,   7,   15,  2,   8,   14,  12,  0,   1,   10,  6,   9,   11,  5},
+                { 0,    14,  7,   11,  10,  4,   13,  1,   5,   8,   12,  6,   9,   3,   2,   15},
+                { 13,   8,   10,  1,   3,   15,  4,   2,   11,  6,   7,   12,  0,   5,   14,  9}
+            },
+            {
+                { 10,   0,   9,   14,  6,   3,  15,  5,   1,   13,  12,  7,   11,  4,   2,  8 },
+                { 13,   7,   0,   9,   3,   4,   6,   10,  2,   8,   5,   14,  12,  11,  15,  1},
+                { 13,   6,   4,   9,   8,   15,  3,   0,   11,  1,   2,   12,  5,  10,  14,  7},
+                { 1,    10,  13,  0,   6,   9,   8,   7,   4,   15,  14,  3,   11,  5,   2,   12}
+            },
+            {
+                { 7,   13,  14,  3,   0,   6,   9,   10,  1,  2,   8,   5,   11,  12,  4,   15 },
+                { 13,   8,   11,  5,   6,   15,  0,   3,   4,   7,   2,   12,  1,   10,  14,  9},
+                { 10,   6,   9,   0,   12,  11,  7,   13,  15,  1,   3,   14,  5,   2,   8,   4},
+                { 3,    15,  0,   6,   10,  1,   13,  8,   9,   4,   5,   11,  12,  7,   2,   14}
+            },
+            {
+                { 2,   12,  4,   1,   7,   10,  11,  6,   8,   5,   3,   15,  13,  0,   14,  9 },
+                { 14,  11,  2,   12,  4,   7,   13,  1,   5,   0,   15,  10,  3,   9,   8,   6},
+                { 4,   2,  1,   11,  10,  13,  7,   8,   15,  9,   12,  5,   6,   3,   0,   14},
+                { 11,  8,   12,  7,   1,   14, 2,   13,  6,   15,  0,   9,   10,  4,   5,   3}
+            },
+            {
+                { 12,   1,   10,  15,  9,   2,   6,   8,   0,   13,  3,   4,   14,  7,   5,   11},
+                { 10,   15,  4,   2,   7,   12,  9,   5,   6,   1,   13,  14,  0,   11,  3,   8},
+                { 9,    14,  15,  5,   2,   8,   12,  3,   7,   0,   4,   10,  1,   13,  11,  6},
+                { 4,    3,   2,   12,  9,   5,   15,  10,  11,  14,  1,   7,   6,   0,   8,   13}
+            },
+            {
+                { 4,    11,  2,   14,  15,  0,   8,   13,  3,   12,  9,   7,   5,   10,  6,   1 },
+                { 13,   0,   11,  7,   4,   9,   1,   10,  14,  3,   5,   12,  2,   15,  8,   6},
+                { 1,    4,   11,  13,  12,  3,   7,   14,  10,  15,  6,   8,   0,   5,   9,   2},
+                { 6,    11,  13,  8,   1,   4,   10,  7,   9,   5,   0,   15,  14,  2,   3,   12}
+            },
+            {
+                { 13,  2,   8,  4,   6,   15,  11,  1,   10,  9,   3,   14,  5,   0,   12,  7 },
+                { 1,   15,  13,  8,   10,  3,   7,   4,   12,  5,   6,   11,  0,   14,  9,  2},
+                { 7,   11,  4,   1,   9,   12,  14,  2,   0,   6,   10,  13,  15,  3,   5,   8},
+                { 2,   1,   14,  7,   4,   10,  8,   13,  15,  12,  9,   0,   3,   5,   6,   11}
+            }
+        };
+        static int[] P = {
+                      16,  7, 20, 21, 29, 12, 28, 17,
+                      1, 15, 23, 26, 5, 18, 31, 10,
+                      2,   8, 24, 14, 32, 27, 3, 9,
+                      19, 13, 30, 6, 22, 11, 4, 25
+                  };
+        static int[] firstKeyReplace = { 
+                                    57,  49,  41,  33,  25,  17,  9,   1,   58,  50,  42,  34,  26,  18,
+                                    10,  2,   59,  51,  43,  35,  27,  19,  11,  3,   60,  52,  44,  36,
+                                    63,  55,  47,  39,  31,  23,  15,  7,   62,  54,  46,  38,  30,  22,
+                                    14,  6,   61,  53,  45,  37,  29,  21,  13,  5,  28,  20,  12,  4
+                                };
+        static int[] secondKeyReplace = {
+                                     14,  17,  11,  24,  1,   5,   3,   28,  15,  6,   21,  10,  23,  19,  12,  4,
+                                     26,  8,   16,  7,   27,  20,  13,  2,   41,  52,  31,  37,  47,  55,  30,  40,
+                                     51,  45,  33,  48,  44,  49,  39,  56,  34,  53,  46,  42,  50,  36,  29,  32
+                                 };
+        static int[] IP_inverse = { 
+                               40, 8, 48, 16, 56, 24, 64, 32, 39, 7, 47, 15, 55, 23, 63, 31,
+                               38, 6, 46, 14, 54, 22, 62, 30, 37, 5, 45, 13, 53, 21, 61, 29,
+                               36, 4, 44, 12, 52, 20, 60, 28, 35, 3, 43, 11, 51, 19, 59, 27,
+                               34, 2, 42, 10, 50, 18, 58, 26, 33, 1, 41,  9,  49, 17, 57, 25
+                           };
+
+        #endregion
+
+        public static Random rand = new Random();
+        public DES()
+        {
+            GenerateKeys();
+        }
+        public void EnterKey(String text)
+        {
+            this.Key = text.ToBitArray();
+            GenerateRoundKeys();
+        }
+        public StringBuilder StringToRightLength(StringBuilder text)
+        {
+            while ((text.Length * SYMBOL_SIZE) % BLOCK_SIZE != 0)
+                text.Append("#");
+            return text;
+        }
+        public BitArray[] SplitIntoBlocks(StringBuilder text)
+        {
+            int countOfBlocks = (text.Length * SYMBOL_SIZE) / BLOCK_SIZE;
+            var arrays = new BitArray[countOfBlocks];
+            for (int i = 0; i < countOfBlocks; i++)
+            {
+                var temp=text.ToString(i * BLOCK_SIZE / SYMBOL_SIZE, BLOCK_SIZE / SYMBOL_SIZE);
+                arrays[i] = new BitArray(Encoding.Unicode.GetBytes(temp));
+
+            }
+            return arrays;
+        }
+
+        public BitArray[] ToBinaryBlocks(StringBuilder block)
+        {
+            int lengthOfBlock = 6;
+            var blocks = new BitArray[8];
+            for (int i = 0; i < blocks.Length; i++)
+            {
+                blocks[i] = new BitArray(Encoding.ASCII.GetBytes((block.ToString(i * lengthOfBlock, lengthOfBlock))));
+            }
+            return blocks;
+
+        }
+
+        public BitArray GetBinaryBlock(StringBuilder block)
+        {
+            var vectorBlock = Encoding.ASCII.GetBytes(block.ToString());
+            return new BitArray(vectorBlock);
+        }
+
+        public static BitArray Permutation(BitArray block, int[] table)
+        {
+            var res = new BitArray(table.Length);
+            for (int i = 0; i < table.Length; i++)
+            {
+                res[i] = block[table[i] - 1];
+            }
+            return res;
+        }
+        public static BitArray S_transform(BitArray block, int num)
+        {
+            int Si = 0;
+            int Sj = 0;
+            if (block[5])
+                Si += 1;
+            if (block[0])
+                Si += 2;
+            if (block[4])
+                Sj += 1;
+            if (block[3])
+                Sj += 2;
+            if (block[2])
+                Sj += 4;
+            if (block[1])
+                Sj += 8;
+            var tmp=S[num - 1, Si, Sj];
+            var temp = tmp.ToBitArray();
+            return temp;
+        }
+        public static BitArray f(BitArray block, BitArray key_i)
+        {
+
+            block = Permutation(block, E);
+            block = block.Xor(key_i);
+            var blocks = block.GetBlocks(6);
+            for (int i = 0; i < blocks.Length; i++)
+            {
+                blocks[i] = S_transform(blocks[i], i + 1);
+            }
+            block = blocks.UnionArrays();
+            block = Permutation(block, P);
+            return block;
+        }
+        public BitArray FeistelNetwork(BitArray block)
+        {
+            var left = new BitArray(block.Length / 2);
+            var right = new BitArray(block.Length / 2);
+            block.GetRightLeftParts(ref left, ref right);
+            for (int i = 0; i < ROUNDS_COUNT; i++)
+            {
+                var temp = right;
+                right = left.Xor(f(right, RoundKeys[i]));
+                left = temp;
+            }
+            return left.AddBitArray(right);
+        }
+        public BitArray InverseFeistelNetwork(BitArray block)
+        {
+            var left = new BitArray(block.Length / 2);
+            var right = new BitArray(block.Length / 2);
+            block.GetRightLeftParts(ref left, ref right);
+            for (int i = ROUNDS_COUNT - 1; i >= 0; i--)
+            {
+                var temp = left;
+                left = right.Xor(f(left, RoundKeys[i]));
+                right = temp;
+            }
+            return left.AddBitArray(right);
+        }
+
+        public BitArray GenerateKeys()
+        {
+            var temp = new byte[7];
+            rand.NextBytes(temp);
+            var key = new BitArray(temp);
+            var extended_key = new BitArray(KEY_LENGTH+8);
+            var index = 0;
+            for (int i = 0; i < 8; i++)
+            {
+                bool ones = false;
+                for (int j = 0; j < 7; j++)
+                {
+                    extended_key[index++] = key[i * 7 + j];
+                    ones ^= key[i * 7 + j];
+                }
+                extended_key[index++] = !ones;
+            }
+            this.Key = extended_key;
+            GenerateRoundKeys();
+            return key;
+        }
+        public void GenerateRoundKeys()
+        {
+            var res = new BitArray(Key.Length-8);
+
+            for (int i = 0; i < firstKeyReplace.Length; i++)
+                res[i]=Key[firstKeyReplace[i] - 1];
+            var CD = new BitArray[17];
+            CD[0] = res;
+            int[] shift = new int[] { 1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1 };
+            for (int i = 1; i < CD.Length; i++)
+            {
+                CD[i] = CD[i - 1].LeftShift(shift[i-1]);
+            }
+            this.RoundKeys = new BitArray[ROUNDS_COUNT];
+            for (int i = 0; i < RoundKeys.Length; i++)
+            {
+                RoundKeys[i] = new BitArray(48);
+                for (int j = 0; j < secondKeyReplace.Length; j++)
+                {
+                    RoundKeys[i][j]=CD[i + 1][secondKeyReplace[j] - 1];
+                }
+            }
+        }
+        public void ClearKey()
+        {
+            this.Key = null;
+            this.RoundKeys = null;
+        }
+        public StringBuilder Encrypt(StringBuilder text)
+        {
+            text = StringToRightLength(text);
+            var countOfBlocks = text.Length / (BLOCK_SIZE / SYMBOL_SIZE);
+            var blocks = new BitArray[countOfBlocks];
+            var bitBlocks = SplitIntoBlocks(text);
+            var output = new StringBuilder();
+            for (int i = 0; i < blocks.Length; i++)
+            {
+                //blocks[i] = Permutation(bitBlocks[i], IP);
+                blocks[i] = FeistelNetwork(bitBlocks[i]);
+                //blocks[i] = Permutation(blocks[i], IP_inverse);
+                output.Append(blocks[i].BitArrayToStr());
+            }
+            return output;
+        }
+        public StringBuilder Decrypt(StringBuilder text)
+        {
+            text = StringToRightLength(text);        
+            var bitBlocks = SplitIntoBlocks(text);
+            var blocks = new BitArray[bitBlocks.Length];
+            var output = new StringBuilder();
+            for (int i = 0; i < blocks.Length; i++)
+            {
+                //blocks[i] = Permutation(bitBlocks[i], IP);
+                blocks[i] = InverseFeistelNetwork(bitBlocks[i]);
+                //blocks[i] = Permutation(blocks[i], IP_inverse);
+                output.Append(blocks[i].BitArrayToStr());
+            }
+            while (output[output.Length - 1] == '#')
+                output.Remove(output.Length - 1, 1);
+            return output;
+        }
+        public byte[] Encrypt(byte[] bytes)
+        {
+             var result=FeistelNetwork(new BitArray(bytes));
+             var res = new byte[8];
+             result.CopyTo(res, 0);
+             return res;
+        }
+        public void PrepairData()
+        {
+            var textFile = new BinaryWriter(new FileStream("text.txt", FileMode.Create));
+            var codefile = new BinaryWriter(new FileStream("code.txt", FileMode.Create));
+            for (ulong i = 0; i < TEXT_COUNT; i++)
+            {
+                var tmp = BitConverter.GetBytes(i);
+                textFile.Write(tmp);
+                var result = Encrypt(tmp);
+                codefile.Write(result);
+            }
+            textFile.Close();
+            codefile.Close();
+        }
+    }
 }

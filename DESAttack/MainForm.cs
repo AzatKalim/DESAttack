@@ -42,23 +42,11 @@ namespace DESAttack
             worker.PrepairData();
             timer.Stop();
             timerTextBox.Text = timer.Elapsed.ToString();
-            keyTextBox.Text = DESKey.LastKey.ToString();
+            keyTextBox.Text = DES.LastKey.ToView();
             for (int j = 0; j < 8; j++)
             {
-                var temp = new BitArray(DESEncrypter.Keys[j]);
-                var buffer = new StringBuilder();
-                for (int i = 0; i < temp.Length; i++)
-                {
-                    if (temp[i])
-                    {
-                        buffer.Append('1');
-                    }
-                    else
-                    {
-                        buffer.Append('0');
-                    }
-                }
-                raundKeysTextBox.Text += buffer + Environment.NewLine;
+                var temp = new BitArray(DES.LastRoundKeys[j]);
+                raundKeysTextBox.Text += temp.ToView() + Environment.NewLine;
             }
         }
 
@@ -71,6 +59,10 @@ namespace DESAttack
             timerTextBox.Text = timer.Elapsed.ToString();
             equalsCountTextBox.Text = LinearCryptanalysis.EqualsCount.ToString();
             keyBitsTextBox.Text = LinearCryptanalysis.KeyBitsString;
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
         }
     }
 }

@@ -44,10 +44,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BitArrayOperations.cs" />
     <Compile Include="DES.cs" />
-    <Compile Include="DESDecrypter.cs" />
-    <Compile Include="DESEncrypter.cs" />
-    <Compile Include="DESKey.cs" />
+    <Compile Include="DESr.cs" />
     <Compile Include="Encryptor.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>

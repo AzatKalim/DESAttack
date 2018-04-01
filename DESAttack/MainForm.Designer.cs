@@ -30,6 +30,10 @@
         {
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.equalsCountTextBox = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.keyBitsTextBox = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.raundKeysTextBox = new System.Windows.Forms.TextBox();
             this.keyTextBox = new System.Windows.Forms.TextBox();
@@ -45,10 +49,7 @@
             this.codeTextBox = new System.Windows.Forms.TextBox();
             this.decodeTextBox = new System.Windows.Forms.TextBox();
             this.button2 = new System.Windows.Forms.Button();
-            this.label6 = new System.Windows.Forms.Label();
-            this.keyBitsTextBox = new System.Windows.Forms.TextBox();
-            this.label4 = new System.Windows.Forms.Label();
-            this.equalsCountTextBox = new System.Windows.Forms.TextBox();
+            this.button3 = new System.Windows.Forms.Button();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -78,10 +79,43 @@
             this.groupBox3.Controls.Add(this.label2);
             this.groupBox3.Location = new System.Drawing.Point(6, 20);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(515, 536);
+            this.groupBox3.Size = new System.Drawing.Size(545, 536);
             this.groupBox3.TabIndex = 7;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Результаты";
+            // 
+            // equalsCountTextBox
+            // 
+            this.equalsCountTextBox.Location = new System.Drawing.Point(153, 419);
+            this.equalsCountTextBox.Name = "equalsCountTextBox";
+            this.equalsCountTextBox.Size = new System.Drawing.Size(206, 20);
+            this.equalsCountTextBox.TabIndex = 16;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(15, 419);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(122, 13);
+            this.label6.TabIndex = 15;
+            this.label6.Text = "Уравнение выполнено";
+            // 
+            // keyBitsTextBox
+            // 
+            this.keyBitsTextBox.Location = new System.Drawing.Point(153, 352);
+            this.keyBitsTextBox.Multiline = true;
+            this.keyBitsTextBox.Name = "keyBitsTextBox";
+            this.keyBitsTextBox.Size = new System.Drawing.Size(206, 36);
+            this.keyBitsTextBox.TabIndex = 14;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(25, 352);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(67, 13);
+            this.label4.TabIndex = 13;
+            this.label4.Text = "Биты ключа";
             // 
             // label5
             // 
@@ -224,44 +258,22 @@
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
-            // label6
+            // button3
             // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(15, 419);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(122, 13);
-            this.label6.TabIndex = 15;
-            this.label6.Text = "Уравнение выполнено";
-            // 
-            // keyBitsTextBox
-            // 
-            this.keyBitsTextBox.Location = new System.Drawing.Point(153, 352);
-            this.keyBitsTextBox.Multiline = true;
-            this.keyBitsTextBox.Name = "keyBitsTextBox";
-            this.keyBitsTextBox.Size = new System.Drawing.Size(206, 36);
-            this.keyBitsTextBox.TabIndex = 14;
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(25, 352);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(67, 13);
-            this.label4.TabIndex = 13;
-            this.label4.Text = "Биты ключа";
-            // 
-            // equalsCountTextBox
-            // 
-            this.equalsCountTextBox.Location = new System.Drawing.Point(153, 419);
-            this.equalsCountTextBox.Name = "equalsCountTextBox";
-            this.equalsCountTextBox.Size = new System.Drawing.Size(206, 20);
-            this.equalsCountTextBox.TabIndex = 16;
+            this.button3.Location = new System.Drawing.Point(54, 394);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(66, 28);
+            this.button3.TabIndex = 11;
+            this.button3.Text = "button3";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1141, 596);
+            this.Controls.Add(this.button3);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.attackButton);
             this.Controls.Add(this.groupBox1);
@@ -300,6 +312,7 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox keyBitsTextBox;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Button button3;
     }
 }
 
